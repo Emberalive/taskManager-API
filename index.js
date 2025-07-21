@@ -5,6 +5,17 @@ const {client, dispose} = require('./DBacces')
 const {authorizeUser} = require('./DbOps')
 
 
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+    process.exit(1); // Exit with error
+});
+
+process.on('unhandledRejection', (err) => {
+    console.error('Unhandled Promise Rejection:', err);
+    process.exit(1); // Exit with error
+});
+
+
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
 })
