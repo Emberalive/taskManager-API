@@ -14,7 +14,6 @@ const allowedOrigins = [
 app.use(cors({
     origin: allowedOrigins, // Only allow these domains
     methods: ['GET', 'POST'], // Allowed HTTP methods
-    credentials: true, // Enable cookies/auth headers (if needed)
 }));
 app.post('/register', (req, res) => {
     try {
