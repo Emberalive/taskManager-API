@@ -7,14 +7,17 @@ const {client, dispose} = require('./DBacces')
 const {authorizeUser} = require('./DbOps')
 
 //enable cors for specific routes
-const allowedOrigins = [
-    'http://192.168.0.134:5173', // React dev server
-];
+app.use(cors());
 
-app.use(cors({
-    origin: allowedOrigins, // Only allow these domains
-    methods: ['GET', 'POST'], // Allowed HTTP methods
-}));
+// const allowedOrigins = [
+//     'http://192.168.0.134:5173', // React dev server
+// ];
+//
+// app.use(cors({
+//     origin: allowedOrigins, // Only allow these domains
+//     methods: ['GET', 'POST'], // Allowed HTTP methods
+// }));
+
 app.post('/register', (req, res) => {
     try {
         console.log("attempting to register");
