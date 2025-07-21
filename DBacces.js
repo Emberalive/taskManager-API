@@ -1,33 +1,28 @@
-const { Client } = require('pg');
+const { Pool } = require('pg');
 require('dotenv').config();
 
-const client = new Client({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT,
+const pool = new Pool({
+    host: "86.19.219.159",
+    user: "samuel",
+    password: "QwErTy1243!",
+    database: "taskManager",
+    port: 5432,
+    max: 20,
 });
 
-function dispose (client) {
-    client.end()
+
+async function getConnection() {
+    return await pool.connect();
 }
 
-module.exports = { client, dispose }
+async function releaseClient(client) {
+    try {
+        if (client) {
+            client.release();
+        }
+    } catch(err) {
+        console.error("Error releasing client:", err.message);
+    }
+}
 
-
-// async function connectDB () {
-//     console.log("attempting to connect to database\n");
-//     try {
-//         return await new Client({
-//             host: process.env.DB_HOST,
-//             user: process.env.DB_USER,
-//             password: process.env.DB_PASS,
-//             database: process.env.DB_NAME,
-//             port: process.env.DB_PORT,
-//         })
-//     } catch (err) {
-//         console.error("This is the error:\n" + err.message);
-//         return null
-//     }
-// }
+module.exports = { getConnection, releaseClient, pool };

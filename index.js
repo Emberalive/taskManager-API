@@ -3,59 +3,29 @@ const port = 7000
 const cors = require('cors')
 
 
-const {client, dispose} = require('./DBacces')
+const {getConnection, releaseClient} = require('./DBacces')
 const {authorizeUser} = require('./DbOps')
 
 //enable cors for specific routes
 app.use(cors());
 
-// const allowedOrigins = [
-//     'http://192.168.0.134:5173', // React dev server
-// ];
-//
-// app.use(cors({
-//     origin: allowedOrigins, // Only allow these domains
-//     methods: ['GET', 'POST'], // Allowed HTTP methods
-// }));
-
-app.post('/register', (req, res) => {
-    try {
-        console.log("attempting to register");
-
-        const { username } = req.body;
-        const { password } = req.body;
-        const { secondPassword } = req.body;
-
-        if (!username || !password) {
-            return res.status(400).send({
-                error: 'username and password is required',
-            })
-        } else if (password !== secondPassword) {
-            return res.status(400).send({
-                error: 'password doesn\'t match',
-            })
-        } else {
-            //add the user to the database
-        }
-    }catch(err) {
-        res.status(500).send({})
-        console.log("This is error:\n" + err.message)
-    }finally {
-        // dispose(client)
-    }
-})
-
 app.get('/login', async (req, res) => {
+    const connection = await getConnection();
     try {
         console.log("this is it")
         const {password, username} = req.query;
-        console.log("submitted data: \n")
-        console.log("password: " + password + " and username: " + password);
         if (!username || !password) {
             return res.status(400);
         } else {
-            const validUser = await authorizeUser(client, username);
-            console.log("validUser: " + validUser);
+            const validUser = await authorizeUser(connection, username);
+
+            if (!validUser) {
+                return res.status(401).send({
+                    loggedIn: false,
+                    error: 'Invalid username or password'
+                })
+            }
+
             //simple insecure password check
             if ((validUser.password !== password) || (!validUser)) {
                 return res.status(400).send({
@@ -72,7 +42,7 @@ app.get('/login', async (req, res) => {
         res.status(500).send({})
         console.log("This is the error:\n" + err.message)
     } finally {
-        // dispose(client)
+        await releaseClient(connection)
     }
 })
 
