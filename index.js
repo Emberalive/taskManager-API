@@ -1,4 +1,5 @@
-const app = require('express')();
+const express = require('express');
+const app = express();
 const port = 5000
 const {client, dispose} = require('./DBacces')
 const {authorizeUser} = require('./DbOps')
@@ -31,7 +32,7 @@ app.post('/register', (req, res) => {
         res.status(500).send({})
         console.log("This is error:\n" + err.message)
     }finally {
-        dispose(client)
+        // dispose(client)
     }
 })
 
@@ -61,6 +62,6 @@ app.get('/login', (req, res) => {
         res.status(500).send({})
         console.log("This is the error:\n" + err.message)
     } finally {
-        dispose(client)
+        // dispose(client)
     }
 })
