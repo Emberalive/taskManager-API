@@ -4,10 +4,6 @@ const port = 7000
 const {client, dispose} = require('./DBacces')
 const {authorizeUser} = require('./DbOps')
 
-app.listen(port, () => {
-    console.log(`Listening on port ${port}`);
-})
-
 app.post('/register', (req, res) => {
     try {
         console.log("attempting to register");
@@ -63,4 +59,8 @@ app.get('/login', (req, res) => {
     } finally {
         // dispose(client)
     }
+})
+
+app.listen(port, () => {
+    console.log(`Listening on port ${port}`);
 })
