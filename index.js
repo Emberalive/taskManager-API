@@ -49,12 +49,13 @@ app.get('/login', (req, res) => {
     try {
         console.log("this is it")
         const { password, username } = req.query;
-
+        console.log("submitted data: \n")
+        console.log("password: " + password + " and username: " + password );
         if (!username || !password) {
             return res.status(400);
         } else {
             const validUser = authorizeUser(client, username);
-
+            console.log("validUser: " + validUser);
             //simple insecure password check
             if ((validUser.password !== password) || (!validUser)) {
                 return res.status(400).send({
