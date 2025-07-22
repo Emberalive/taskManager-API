@@ -102,14 +102,14 @@ app.post('/createTask', async (req, res) => {
         }else {
             const result = await createTask(connection, req.body.task)
 
-            if (!result.success) {
+            if (result.success ===false) {
                 return res.status(500).send({
                     error: 'server error'
                 })
             } else {
-                return res.status(201).send({
-                    success: true
-                })
+                return res.status(201).send(
+                    result
+                )
             }
         }
     } catch (err) {
@@ -122,8 +122,20 @@ app.post('/createTask', async (req, res) => {
 app.get('/getUserTasks', async (req, res) => {
     const connection = await getConnection();
     try {
-        console.log("attempting to get tasks for: " + req.query.username)
+        if (req.query.username) {
+            console.log("attempting to get tasks for: " + req.query.username)
 
+            const tasks = await getUserTasks(connection, req.query.username)
+
+            res.status(200).send({
+                tasks: tasks,
+                success: true
+            })
+        } else {
+            res.status(400).send({
+                success: false
+            })
+        }
     } catch (err){
         console.error("Error getting user tasks :", err.message);
         res.status(500).send({})
