@@ -5,7 +5,7 @@ const cors = require('cors')
 
 
 const {getConnection, releaseClient} = require('./DBacces')
-const {authorizeUser, registerUser} = require('./DbOps')
+const {authorizeUser, registerUser, createTask, getUserTasks} = require('./DbOps')
 
 app.use(express.json());
 //enable cors for specific routes
@@ -39,7 +39,7 @@ app.get('/login', async (req, res) => {
         }
         //simple insecure password check
         console.log("verifying password");
-        if ((validUser.password !== password) || (!validUser)) {
+        if ((!validUser) || (validUser.password !== password)) {
             return res.status(400).send({
                 loggedIn: false,
             })
@@ -86,7 +86,49 @@ app.post('/register', async (req, res) => {
             registered: false,
         })
     }
-}, );
+});
+
+app.post('/createTask', async (req, res) => {
+    console.log("registering task for :", req.body.task.username)
+    const connection = await getConnection();
+    try {
+
+        console.log("request parameters: " + JSON.stringify(req.body.task));
+
+        if (!req.body.task) {
+            return res.status(400).send({
+                success : false
+            })
+        }else {
+            const result = await createTask(connection, req.body.task)
+
+            if (!result.success) {
+                return res.status(500).send({
+                    error: 'server error'
+                })
+            } else {
+                return res.status(201).send({
+                    success: true
+                })
+            }
+        }
+    } catch (err) {
+        res.status(500).send({
+            success: false,
+        })
+    }
+})
+
+app.get('/getUserTasks', async (req, res) => {
+    const connection = await getConnection();
+    try {
+        console.log("attempting to get tasks for: " + req.query.username)
+
+    } catch (err){
+        console.error("Error getting user tasks :", err.message);
+        res.status(500).send({})
+    }
+})
 
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);

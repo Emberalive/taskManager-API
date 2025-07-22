@@ -1,6 +1,8 @@
 
 module.exports = {
-    authorizeUser, registerUser
+    authorizeUser,
+    registerUser,
+    createTask
 }
 
 async function authorizeUser(client, username) {
@@ -35,19 +37,49 @@ async function authorizeUser(client, username) {
 
 async function registerUser(client, username, password) {
     console.log("registering user:", username);
-    if (!client || !client._connected) {
-        console.error("Database connection not established");
-        throw new Error("Database connection error");
-    }
-
-    console.log("adding the user to the database:", username);
-    const result = await client.query(`INSERT INTO users (username, password) VALUES ($1, $2)`, [username, password]);
-    if ((result.rows === 0) || (result.rows.length > 1)) {
-        console.error("Invalid query result format");
-        return null;
-    }else {
-        return {
-            registered: true,
+    try {
+        if (!client || !client._connected) {
+            console.error("Database connection not established");
         }
+
+        console.log("adding the user to the database:", username);
+        const result = await client.query(`INSERT INTO users (username, password) VALUES ($1, $2)`, [username, password]);
+        if ((result.rows === 0) || (result.rows.length > 1)) {
+            console.error("Invalid query result format");
+            return null;
+        }else {
+            return {
+                registered: true,
+            }
+        }
+    } catch (err) {
+        console.error("Registering user:", err);
+    }
+}
+
+async function createTask (client, task) {
+    console.log("creating task for :", task.username);
+    console.log("creating task for user:", task);
+    try {
+        if (!client || !client._connected) {
+            console.error("Database connection not established");
+            return {
+                success: false,
+            }
+        }
+        const result = await client.query(`INSERT INTO task (id, title, description, date, username)
+            VALUES ($1, $2, $3, $4, $5)`,
+            [task.id, task.title, task.description, task.date, task.username]);
+
+        if ((result.rows === 0)|| (result.rows.length > 1)) {
+            console.error("Invalid query result format");
+        } else {
+            console.log("Task has been successfully created");
+            return {
+                success: true,
+            }
+        }
+    } catch (err){
+        console.error("Error creating task :", err.message);
     }
 }
