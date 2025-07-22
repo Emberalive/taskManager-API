@@ -5,7 +5,13 @@ const cors = require('cors')
 
 
 const {getConnection, releaseClient} = require('./DBacces')
-const {authorizeUser, registerUser, createTask, getUserTasks} = require('./DbOps')
+const {
+    authorizeUser,
+    registerUser,
+    createTask,
+    getUserTasks,
+    deleteTask
+} = require('./DbOps')
 
 app.use(express.json());
 //enable cors for specific routes
@@ -85,6 +91,8 @@ app.post('/register', async (req, res) => {
         res.status(500).send({
             registered: false,
         })
+    } finally {
+        await releaseClient(connection)
     }
 });
 
@@ -116,6 +124,8 @@ app.post('/createTask', async (req, res) => {
         res.status(500).send({
             success: false,
         })
+    } finally {
+        await releaseClient(connection)
     }
 })
 
@@ -139,6 +149,33 @@ app.get('/getUserTasks', async (req, res) => {
     } catch (err){
         console.error("Error getting user tasks :", err.message);
         res.status(500).send({})
+    } finally {
+        await releaseClient(connection)
+    }
+})
+
+app.delete('/deleteTask', async (req, res) => {
+    const connection = await getConnection();
+
+    console.log("starting delete task for task: " + req.query.id)
+
+    const taskId = req.query.id
+    if (!taskId) {
+        return res.status(400).send({
+            success : false
+        })
+    }
+    const result = await deleteTask(connection, taskId)
+    if (result.success) {
+        console.log("deleted task:\n", result.success)
+        return res.status(200).send({
+            result
+        })
+    } else {
+        console.log("deleted task: \n", result)
+        return res.status(400).send({
+            result
+        })
     }
 })
 

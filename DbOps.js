@@ -1,9 +1,11 @@
+const result = require("pg/lib/query");
 
 module.exports = {
     authorizeUser,
     registerUser,
     createTask,
-    getUserTasks
+    getUserTasks,
+    deleteTask
 }
 
 async function authorizeUser(client, username) {
@@ -94,6 +96,24 @@ async function getUserTasks (client, username) {
     } else {
         const result = await client.query(`SELECT * FROM task WHERE username = $1;`, [username]);
         return result.rows;
+    }
+
+}
+
+async function deleteTask (client, taskId) {
+    if (!client || !client._connected) {
+        console.error("Database connection not established");
+    }
+    console.log("deleting task :" + taskId);
+    const result = await client.query(`DELETE FROM task WHERE id = $1;`, [taskId]);
+
+    if ((result.rows === 0) || (result.rows.length > 1)) {
+        console.error("Invalid query result format");
+    } else {
+        console.log("Task has been successfully deleted");
+        return {
+            success: true,
+        }
     }
 
 }
