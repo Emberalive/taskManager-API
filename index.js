@@ -18,9 +18,8 @@ app.get('/login', async (req, res) => {
         console.log("starting login end-point")
         let {password, username} = req.query;
 
-        username = (username || "").trim();
-        password = (password || "").trim();
-
+        username = username.trim();
+        password = password.trim();
 
         console.log("request parameters: " + password + " " + username);
         console.log("verifying parameters")
@@ -34,12 +33,10 @@ app.get('/login', async (req, res) => {
                     error: 'Invalid username or password'
                 })
             }
-
         } else {
             console.log("incorrect parameters")
             return res.status(400);
         }
-
         //simple insecure password check
         console.log("verifying password");
         if ((validUser.password !== password) || (!validUser)) {
