@@ -1,23 +1,32 @@
-const app = require('express')();
+const express = require('express');
+const app = express();
 const port = 7000
 const cors = require('cors')
 
 
 const {getConnection, releaseClient} = require('./DBacces')
-const {authorizeUser} = require('./DbOps')
+const {authorizeUser, registerUser} = require('./DbOps')
 
+app.use(express.json());
 //enable cors for specific routes
 app.use(cors());
 
 app.get('/login', async (req, res) => {
     const connection = await getConnection();
+    let validUser = {};
     try {
-        console.log("this is it")
-        const {password, username} = req.query;
-        if (!username || !password) {
-            return res.status(400);
-        } else {
-            const validUser = await authorizeUser(connection, username);
+        console.log("starting login end-point")
+        let {password, username} = req.query;
+
+        username = (username || "").trim();
+        password = (password || "").trim();
+
+
+        console.log("request parameters: " + password + " " + username);
+        console.log("verifying parameters")
+        if (username && password) {
+            console.log("verifying the user details")
+            validUser = await authorizeUser(connection, username);
 
             if (!validUser) {
                 return res.status(401).send({
@@ -26,25 +35,61 @@ app.get('/login', async (req, res) => {
                 })
             }
 
-            //simple insecure password check
-            if ((validUser.password !== password) || (!validUser)) {
-                return res.status(400).send({
-                    loggedIn: false,
-                })
-            } else {
-                return res.status(200).send({
-                    loggedIn: true,
-                    user: validUser,
-                })
-            }
+        } else {
+            console.log("incorrect parameters")
+            return res.status(400);
+        }
+
+        //simple insecure password check
+        console.log("verifying password");
+        if ((validUser.password !== password) || (!validUser)) {
+            return res.status(400).send({
+                loggedIn: false,
+            })
+        } else {
+            console.log("verified password");
+            return res.status(200).send({
+                loggedIn: true,
+                user: validUser,
+            })
         }
     } catch (err) {
         res.status(500).send({})
-        console.log("This is the error:\n" + err.message)
+        console.log("Error while login: \n" + err.message)
     } finally {
         await releaseClient(connection)
     }
 })
+
+app.post('/register', async (req, res) => {
+    console.log("registering user:", req.body.username)
+    const connection = await getConnection();
+    try {
+        const {username, password, confirmPassword} = req.body;
+
+        if (!username || !password || !confirmPassword) {
+            return res.status(400).send({
+                registered: false,
+            })
+        }  else if (password !== confirmPassword) {
+            return res.status(400).send({
+                registered: false,
+            })
+        } else {
+            const isCreated = await registerUser(connection, username, password);
+            if (isCreated.registered) {
+                return res.status(200).send({
+                    registered: true,
+                })
+            }
+        }
+    } catch (err) {
+        console.log("Error while registering: " + err.message);
+        res.status(500).send({
+            registered: false,
+        })
+    }
+}, );
 
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
