@@ -116,8 +116,7 @@ app.patch('/profile', async (req, res) => {
 
     try {
        if (req.body.newUserData) {
-           console.log(req.body.newUserData);
-           const result = await patchUserData(connection, req.body.username, req.body.newUserData.newUserData)
+           const result = await patchUserData(connection, req.body.newUserData, req.body.username)
 
            if (result.success) {
                return res.status(201).send({

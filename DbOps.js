@@ -56,6 +56,7 @@ async function registerUser(client, username, password) {
         }
 }
 
+
 async function patchUserData(client, userData, username) {
     if (!client || !client._connected) {
         console.error("Database connection not established");
@@ -63,21 +64,25 @@ async function patchUserData(client, userData, username) {
             success: false,
         }
     }
-    const result = await client.query(`UPDATE users
-    SET username = $1,
-    bio = $2,
-    email = $3,
-    WHERE username = $4`)
+    try {
+        const result = await client.query(`UPDATE users
+            SET username = $1,
+            bio = $2,
+            email = $3
+            WHERE username = $4;`, [userData.username, userData.bio, userData.email, username]);
 
-    if ((result.rowCount === 0) || (result.rowCount > 1)) {
-        console.error("Invalid query result format");
-        return {
-            success: false,
+        if ((result.rowCount === 0) || (result.rowCount > 1)) {
+            console.error("Invalid query result format");
+            return {
+                success: false,
+            }
+        } else {
+            return {
+                success: true,
+            }
         }
-    } else {
-        return {
-            success: true,
-        }
+    } catch (err) {
+        throw new Error("Error updating users data" + err.message);
     }
 }
 
