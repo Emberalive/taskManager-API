@@ -67,7 +67,7 @@ async function patchUserData(client, userData, username) {
     SET username = $1,
     bio = $2,
     email = $3,
-    WHERE username = $4,`)
+    WHERE username = $4`)
 
     if ((result.rowCount === 0) || (result.rowCount > 1)) {
         console.error("Invalid query result format");

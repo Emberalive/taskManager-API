@@ -110,13 +110,15 @@ app.post('/register', async (req, res) => {
     }
 });
 
-app.patch('/profile/', async (req, res) => {
+app.patch('/profile', async (req, res) => {
     const connection = await getConnection();
-    console.log("started patch on user data:" + req.body.user.username);
+    console.log("started patch on user data:" + req.body.username);
 
     try {
-       if (req.body.user) {
-           const result = await patchUserData(connection, req.body.user)
+       if (req.body.newUserData) {
+           console.log(req.body.newUserData);
+           const result = await patchUserData(connection, req.body.username, req.body.newUserData.newUserData)
+
            if (result.success) {
                return res.status(201).send({
                    success: true
