@@ -11,7 +11,8 @@ const {
     createTask,
     getUserTasks,
     deleteTask,
-    updateTask
+    updateTask,
+    completedTask
 } = require('./DbOps')
 
 app.use(express.json());
@@ -107,7 +108,6 @@ app.post('/createTask', async (req, res) => {
     console.log("registering task for :", req.body.task.username)
     const connection = await getConnection();
     try {
-
         console.log("request parameters: " + JSON.stringify(req.body.task));
 
         if (!req.body.task) {
@@ -133,6 +133,33 @@ app.post('/createTask', async (req, res) => {
         })
     } finally {
         await releaseClient(connection)
+    }
+})
+
+app.post('/completedTask', async (req, res) => {
+    const connection = await getConnection();
+    try {
+        const task = req.body.task
+        if (!task) {
+            return res.status(400).send({
+                success : false
+            })
+        } else {
+            const result = await completedTask(connection, task)
+            if (result.success === false) {
+                return res.status(500).send(
+                    result
+                )
+            } else {
+                res.status(201).send(
+                    result
+                )
+            }
+        }
+    } catch (err) {
+        res.status(500).send({
+            success : false
+        })
     }
 })
 
@@ -177,12 +204,12 @@ app.delete('/deleteTask', async (req, res) => {
         if (result.success) {
             console.log("deleted task:\n", result.success)
             return res.status(200).send({
-                result
+                success: true
             })
         } else {
             console.log("deleted task: \n", result)
-            return res.status(400).send({
-                result
+            return res.status(500).send({
+                success: false
             })
         }
     } catch (err) {

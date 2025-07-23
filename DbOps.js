@@ -6,7 +6,8 @@ module.exports = {
     createTask,
     getUserTasks,
     deleteTask,
-    updateTask
+    updateTask,
+    completedTask
 }
 
 async function authorizeUser(client, username) {
@@ -93,6 +94,9 @@ async function getUserTasks (client, username) {
 async function deleteTask (client, taskId) {
     if (!client || !client._connected) {
         console.error("Database connection not established");
+        return {
+            success: false,
+        }
     }
     console.log("deleting task :" + taskId);
     const result = await client.query(`DELETE FROM task WHERE id = $1;`, [taskId]);
@@ -131,6 +135,29 @@ async function updateTask (client, id, title, description) {
         }
     } else {
         console.log("Task has been successfully updated");
+        return {
+            success: true,
+        }
+    }
+}
+
+async function completedTask (client, task) {
+    if (!client || !client._connected) {
+        console.error("Database connection not established");
+        return {
+            success: false,
+        }
+    }
+    console.log("adding completed task -> " + task.id);
+    const result = await client.query(`INSERT INTO completedTask (id, title, description, date, username)
+        VALUES ($1, $2, $3, $4, $5)`,[task.id, task.title, task.description, task.date, task.username])
+
+    if ((result.rowCount === 0) || (result.rowCount > 1)) {
+        console.error("peration completed unsuccessfuly");
+        return {
+            success: false,
+        }
+    } else {
         return {
             success: true,
         }
