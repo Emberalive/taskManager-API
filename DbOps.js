@@ -7,7 +7,8 @@ module.exports = {
     getUserTasks,
     deleteTask,
     updateTask,
-    completedTask
+    completedTask,
+    getCompletedTasks
 }
 
 async function authorizeUser(client, username) {
@@ -89,6 +90,19 @@ async function getUserTasks (client, username) {
 
             return result.rows;
         }
+}
+
+async function getCompletedTasks (client, username) {
+    if (!client || !client._connected) {
+        console.error("Database connection not established");
+        return {
+            success: false,
+        }
+    } else {
+        const result = await client.query(`SELECT * FROM completedTask WHERE username = $1;`, [username]);
+
+        return result.rows;
+    }
 }
 
 async function deleteTask (client, taskId) {

@@ -12,7 +12,8 @@ const {
     getUserTasks,
     deleteTask,
     updateTask,
-    completedTask
+    completedTask,
+    getCompletedTasks
 } = require('./DbOps')
 
 app.use(express.json());
@@ -182,6 +183,31 @@ app.get('/getUserTasks', async (req, res) => {
         }
     } catch (err){
         console.error("Error getting user tasks :", err.message);
+        res.status(500).send({})
+    } finally {
+        await releaseClient(connection)
+    }
+})
+
+app.get('/getCompletedTasks', async (req, res) => {
+    const connection = await getConnection();
+    try {
+        if (req.query.username) {
+            console.log("attempting to get completed tasks for: " + req.query.username)
+
+            const tasks = await getCompletedTasks(connection, req.query.username)
+
+            res.status(200).send({
+                tasks: tasks,
+                success: true
+            })
+        } else {
+            res.status(400).send({
+                success: false
+            })
+        }
+    } catch (err){
+        console.error("Error getting user completed tasks :", err.message);
         res.status(500).send({})
     } finally {
         await releaseClient(connection)
