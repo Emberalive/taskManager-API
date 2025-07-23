@@ -96,10 +96,11 @@ async function deleteTask (client, taskId) {
     }
     console.log("deleting task :" + taskId);
     const result = await client.query(`DELETE FROM task WHERE id = $1;`, [taskId]);
-
-    if ((result.rows === 0) || (result.rows.length > 1)) {
+    if ((result.rowCount === 0) || (result.rowCount > 1)) {
         console.error("Invalid query result format");
-        await client.rollback()
+        return {
+            success: false,
+        }
     } else {
         console.log("Task has been successfully deleted");
         return {
