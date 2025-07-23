@@ -8,7 +8,8 @@ module.exports = {
     deleteTask,
     updateTask,
     completedTask,
-    getCompletedTasks
+    getCompletedTasks,
+    patchUserData
 }
 
 async function authorizeUser(client, username) {
@@ -53,6 +54,31 @@ async function registerUser(client, username, password) {
                 registered: true,
             }
         }
+}
+
+async function patchUserData(client, userData, username) {
+    if (!client || !client._connected) {
+        console.error("Database connection not established");
+        return {
+            success: false,
+        }
+    }
+    const result = await client.query(`UPDATE users
+    SET username = $1,
+    bio = $2,
+    email = $3,
+    WHERE username = $4,`)
+
+    if ((result.rowCount === 0) || (result.rowCount > 1)) {
+        console.error("Invalid query result format");
+        return {
+            success: false,
+        }
+    } else {
+        return {
+            success: true,
+        }
+    }
 }
 
 async function createTask (client, task) {

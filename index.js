@@ -13,7 +13,8 @@ const {
     deleteTask,
     updateTask,
     completedTask,
-    getCompletedTasks
+    getCompletedTasks,
+    patchUserData
 } = require('./DbOps')
 
 app.use(express.json());
@@ -108,6 +109,35 @@ app.post('/register', async (req, res) => {
         await releaseClient(connection)
     }
 });
+
+app.patch('/profile/', async (req, res) => {
+    const connection = await getConnection();
+    console.log("started patch on user data:" + req.body.user.username);
+
+    try {
+       if (req.body.user) {
+           const result = await patchUserData(connection, req.body.user)
+           if (result.success) {
+               return res.status(201).send({
+                   success: true
+               })
+           } else {
+               return res.status(400).send({
+                   success: false,
+               })
+           }
+       } else {
+           res.status(400).send({
+               success: false
+           })
+       }
+    } catch (err) {
+        res.status(500).send({
+            success: false,
+            error: err.message
+        })
+    }
+})
 
 app.post('/createTask', async (req, res) => {
     console.log("registering task for :", req.body.task.username)
