@@ -10,7 +10,8 @@ const {
     registerUser,
     createTask,
     getUserTasks,
-    deleteTask
+    deleteTask,
+    updateTask
 } = require('./DbOps')
 
 app.use(express.json());
@@ -182,6 +183,34 @@ app.delete('/deleteTask', async (req, res) => {
         console.error("Error while deleting task" + "\nError: " + err.message);
     } finally {
         await releaseClient(connection)
+    }
+})
+
+app.patch('/updateTask', async (req, res) => {
+    const connection = await getConnection();
+    const task = req.body
+    const {id, title, description} = task;
+    console.log(id + " " + title + " " + description);
+
+    console.log("update task for task: " + task.id + " started")
+    try {
+        if (id && title && description) {
+            const result = await updateTask(connection, id, title, description);
+
+            if (result.success) {
+                return res.status(200).send({
+                    success: true
+                })
+            } else {
+                return res.status(400).send({
+                    success: false
+                })
+            }
+        }
+
+    } catch (err){
+        console.log("error updating task for task: " + task.id)
+        return res.status(500).send({})
     }
 })
 
