@@ -108,7 +108,7 @@ async function deleteTask (client, taskId) {
     }
 }
 
-async function updateTask (client, taskId, title, description) {
+async function updateTask (client, id, title, description) {
     if (!client || !client._connected) {
         console.error("Database connection not established");
         return {
@@ -116,15 +116,18 @@ async function updateTask (client, taskId, title, description) {
         }
     }
 
-    console.log("updating task for :", taskId);
+    console.log("updating task details for task :", id);
 
     const result = await client.query(`UPDATE task
         SET title = $1,
         description = $2
-        WHERE id = $3`, [title, description, taskId]);
+        WHERE id = $3`, [title, description, id]);
     
     if ((result.rowCount === 0) || (result.rowCount > 1)) {
         console.error("Invalid query result format");
+        return {
+            success: false,
+        }
     } else {
         console.log("Task has been successfully updated");
         return {

@@ -16,7 +16,13 @@ const {
 
 app.use(express.json());
 //enable cors for specific routes
-app.use(cors());
+app.use(cors(
+    {
+        origin: "http://localhost:5173",
+        methods: ["GET", "POST", "PATCH", "DELETE"],
+        "preflightContinue": false
+    }
+));
 
 app.get('/login', async (req, res) => {
     const connection = await getConnection();
@@ -189,13 +195,14 @@ app.delete('/deleteTask', async (req, res) => {
 app.patch('/updateTask', async (req, res) => {
     const connection = await getConnection();
     const task = req.body
-    const {id, title, description} = task;
-    console.log(id + " " + title + " " + description);
+    // const {id, title, description} = task;
+    console.log(task.id + " " + task.title + " " + task.description);
 
     console.log("update task for task: " + task.id + " started")
     try {
-        if (id && title && description) {
-            const result = await updateTask(connection, id, title, description);
+        if (task.id && task.title && task.description) {
+            console.log("calling DB Operation")
+            const result = await updateTask(connection, task.id, task.title, task.description);
 
             if (result.success) {
                 return res.status(200).send({
@@ -206,11 +213,19 @@ app.patch('/updateTask', async (req, res) => {
                     success: false
                 })
             }
+        } else {
+            return res.status(400).send({
+                success: false,
+                error: "missing parameters"
+            })
         }
 
     } catch (err){
         console.log("error updating task for task: " + task.id)
-        return res.status(500).send({})
+        return res.status(500).send({
+            success: false,
+            error : err.message
+        })
     }
 })
 
