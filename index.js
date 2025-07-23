@@ -34,7 +34,7 @@ app.get('/login', async (req, res) => {
         let {password, username} = req.query;
 
         username = username.trim();
-        password = password.trim();
+        password = decodeURIComponent(password).trim();
 
         console.log("request parameters: " + password + " " + username);
         console.log("verifying parameters")
@@ -62,7 +62,11 @@ app.get('/login', async (req, res) => {
             console.log("verified password");
             return res.status(200).send({
                 loggedIn: true,
-                user: validUser,
+                user: {
+                    username: validUser.username,
+                    email: validUser.email,
+                    bio: validUser.bio
+                },
             })
         }
     } catch (err) {
