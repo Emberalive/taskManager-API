@@ -159,23 +159,29 @@ app.delete('/deleteTask', async (req, res) => {
 
     console.log("starting delete task for task: " + req.query.id)
 
-    const taskId = req.query.id
-    if (!taskId) {
-        return res.status(400).send({
-            success : false
-        })
-    }
-    const result = await deleteTask(connection, taskId)
-    if (result.success) {
-        console.log("deleted task:\n", result.success)
-        return res.status(200).send({
-            result
-        })
-    } else {
-        console.log("deleted task: \n", result)
-        return res.status(400).send({
-            result
-        })
+    try {
+        const taskId = req.query.id
+        if (!taskId) {
+            return res.status(400).send({
+                success : false
+            })
+        }
+        const result = await deleteTask(connection, taskId)
+        if (result.success) {
+            console.log("deleted task:\n", result.success)
+            return res.status(200).send({
+                result
+            })
+        } else {
+            console.log("deleted task: \n", result)
+            return res.status(400).send({
+                result
+            })
+        }
+    } catch (err) {
+        console.error("Error while deleting task" + "\nError: " + err.message);
+    } finally {
+        await releaseClient(connection)
     }
 })
 

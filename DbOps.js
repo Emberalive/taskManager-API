@@ -14,9 +14,7 @@ async function authorizeUser(client, username) {
         console.error("Database connection not established");
         throw new Error("Database connection error");
     }
-
-    try {
-        console.log(`Authorizing user: ${username}`);
+     console.log(`Authorizing user: ${username}`);
 
         const query = `SELECT * FROM users WHERE username = $1;`
         const values = [username, ]
@@ -30,17 +28,12 @@ async function authorizeUser(client, username) {
             return result.rows[0];
         } else {
             console.error("Invalid query result format");
-            return null;
         }
-
-    } catch (err) {
-        console.error("Authorization failed:\n" + err.message);
-    }
 }
 
 async function registerUser(client, username, password) {
     console.log("registering user:", username);
-    try {
+
         if (!client || !client._connected) {
             console.error("Database connection not established");
         }
@@ -55,15 +48,12 @@ async function registerUser(client, username, password) {
                 registered: true,
             }
         }
-    } catch (err) {
-        console.error("Registering user:", err);
-    }
 }
 
 async function createTask (client, task) {
     console.log("creating task for :", task.username);
     console.log("creating task for user:", task);
-    try {
+
         if (!client || !client._connected) {
             console.error("Database connection not established");
             return {
@@ -82,22 +72,18 @@ async function createTask (client, task) {
                 success: true,
             }
         }
-    } catch (err){
-        console.error("Error creating task :", err.message);
-    }
 }
 
 async function getUserTasks (client, username) {
-    if (!client || !client._connected) {
-        console.error("Database connection not established");
-        return {
-            success: false,
+        if (!client || !client._connected) {
+            console.error("Database connection not established");
+            return {
+                success: false,
+            }
+        } else {
+            const result = await client.query(`SELECT * FROM task WHERE username = $1;`, [username]);
+            return result.rows;
         }
-    } else {
-        const result = await client.query(`SELECT * FROM task WHERE username = $1;`, [username]);
-        return result.rows;
-    }
-
 }
 
 async function deleteTask (client, taskId) {
@@ -115,5 +101,4 @@ async function deleteTask (client, taskId) {
             success: true,
         }
     }
-
 }
