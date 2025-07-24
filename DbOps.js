@@ -60,9 +60,7 @@ async function registerUser(client, username, password) {
 async function patchUserData(client, userData, username) {
     if (!client || !client._connected) {
         console.error("Database connection not established");
-        return {
-            success: false,
-        }
+        return false
     }
     try {
         const result = await client.query(`UPDATE users
@@ -73,13 +71,9 @@ async function patchUserData(client, userData, username) {
 
         if ((result.rowCount === 0) || (result.rowCount > 1)) {
             console.error("Invalid query result format");
-            return {
-                success: false,
-            }
+            return false
         } else {
-            return {
-                success: true,
-            }
+            return true
         }
     } catch (err) {
         throw new Error("Error updating users data" + err.message);

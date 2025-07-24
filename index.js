@@ -114,25 +114,26 @@ app.patch('/profile', async (req, res) => {
     const connection = await getConnection();
     console.log("started patch on user data:" + req.body.username);
 
-    try {
-       if (req.body.newUserData) {
-           const result = await patchUserData(connection, req.body.newUserData, req.body.username)
+        try {
+           if (req.body.newUserData) {
+               const result = await patchUserData(connection, req.body.newUserData, req.body.username)
 
-           if (result.success) {
-               return res.status(201).send({
-                   success: true
-               })
+
+               if (result) {
+                   return res.status(201).send({
+                       success: true
+                   })
+               } else {
+                   return res.status(400).send({
+                       success: false,
+                   })
+               }
            } else {
-               return res.status(400).send({
-                   success: false,
+               res.status(400).send({
+                   success: false
                })
            }
-       } else {
-           res.status(400).send({
-               success: false
-           })
-       }
-    } catch (err) {
+        } catch (err) {
         res.status(500).send({
             success: false,
             error: err.message
