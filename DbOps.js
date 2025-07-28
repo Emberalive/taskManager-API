@@ -9,7 +9,9 @@ module.exports = {
     updateTask,
     completedTask,
     getCompletedTasks,
-    patchUserData
+    patchUserData,
+    getGroups,
+    createGroup,
 }
 
 async function authorizeUser(client, username) {
@@ -90,9 +92,9 @@ async function createTask (client, task) {
                 success: false,
             }
         }
-        const result = await client.query(`INSERT INTO task (id, title, description, date, username)
-            VALUES ($1, $2, $3, $4, $5)`,
-            [task.id, task.title, task.description, task.date, task.username]);
+        const result = await client.query(`INSERT INTO task (id, title, description, date, username, groups)
+            VALUES ($1, $2, $3, $4, $5, $6)`,
+            [task.id, task.title, task.description, task.date, task.username, task.group]);
 
         if ((result.rows === 0)|| (result.rows.length > 1)) {
             console.error("Invalid query result format");
@@ -193,6 +195,46 @@ async function completedTask (client, task) {
 
     if ((result.rowCount === 0) || (result.rowCount > 1)) {
         console.error("peration completed unsuccessfuly");
+        return {
+            success: false,
+        }
+    } else {
+        return {
+            success: true,
+        }
+    }
+}
+
+async function getGroups (client, username) {
+    if (!client || !client._connected) {
+        console.error("Database connection not established");
+        return {
+            success: false,
+        }
+    }
+    console.log("Getting the groups for the user: "+ username);
+    const result = await client.query(`SELECT name FROM groups WHERE username = $1;`, [username]);
+    console.log(result.rows);
+    if (result) {
+        return {
+            success: true,
+            groups: result.rows
+        };
+
+    }
+}
+
+async function createGroup (client, username, groupName) {
+    if (!client || !client._connected) {
+        console.error("Database connection not established");
+        return {
+            success: false,
+        }
+    }
+    console.log("Querying database")
+    const result = await client.query(`INSERT INTO groups (name, username) VALUES ($1, $2)`,[groupName, username])
+    if ((result.rowCount === 0) || (result.rowCount > 1)) {
+        console.error("Invalid query result format");
         return {
             success: false,
         }

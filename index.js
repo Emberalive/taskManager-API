@@ -14,7 +14,7 @@ const {
     updateTask,
     completedTask,
     getCompletedTasks,
-    patchUserData
+    patchUserData, getGroups, createGroup
 } = require('./DbOps')
 
 app.use(express.json());
@@ -165,6 +165,7 @@ app.post('/createTask', async (req, res) => {
             }
         }
     } catch (err) {
+        console.error("Error while creating task: ", err.message);
         res.status(500).send({
             success: false,
         })
@@ -207,7 +208,6 @@ app.get('/getUserTasks', async (req, res) => {
             console.log("attempting to get tasks for: " + req.query.username)
 
             const tasks = await getUserTasks(connection, req.query.username)
-
             res.status(200).send({
                 tasks: tasks,
                 success: true
@@ -314,6 +314,54 @@ app.patch('/updateTask', async (req, res) => {
         return res.status(500).send({
             success: false,
             error : err.message
+        })
+    }
+})
+
+app.get('/getGroups', async (req, res) => {
+    const connection = await getConnection();
+    console.log("starting getGroups for: " + req.query.username)
+
+    try {
+        const result = await getGroups(connection, req.query.username)
+        if (result.success) {
+            res.status(200).send({
+                success: true,
+                groups: result.groups
+            })
+        } else {
+            res.status(400).send({
+                success: false
+            })
+        }
+    } catch (err) {
+        console.error("Error getting Groups for user: " + req.query.username  + "\nError: " + err.message);
+        res.status(500).send({
+            success: false
+        })
+    }
+})
+
+app.post('/createGroup', async (req, res) => {
+    const connection = await getConnection();
+    console.log("starting create group for user: " + req.body.username)
+    try {
+        console.log("calling DB Operation")
+        const result = await createGroup(connection, req.body.username, req.body.groupName);
+        if (result.success) {
+            console.log(result)
+            return res.status(200).send({
+                success: true
+            })
+        } else {
+            return res.status(400).send({
+                success: false
+            })
+        }
+    } catch (err) {
+        console.log("Error create group for user: " + req.body.username + "\nError: " + err.message);
+        res.status(500).send({
+            success: false
         })
     }
 })
