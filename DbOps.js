@@ -1,5 +1,3 @@
-const result = require("pg/lib/query");
-
 module.exports = {
     authorizeUser,
     registerUser,
@@ -16,11 +14,11 @@ module.exports = {
 
 async function authorizeUser(client, username) {
     // Validate client connection
+    console.log(`[DbOps - AuthorizeUser] Starting authorization for user: ${username}`);
     if (!client || !client._connected) {
-        console.error("Database connection not established");
+        console.error("[DbOps - AuthorizeUser] Database connection not established");
         throw new Error("Database connection error");
     }
-     console.log(`Authorizing user: ${username}`);
 
         const query = `SELECT * FROM users WHERE username = $1;`
         const values = [username, ]
@@ -30,38 +28,40 @@ async function authorizeUser(client, username) {
         });
         // Check if user exists
         if (result.rows.length > 0) {
-            console.log("User found:", result.rows[0].username);
+            console.log(`[DbOps - AuthorizeUser] User found: ${result.rows[0].username}`);
+            console.log(`[DbOps - AuthorizeUser] Authorization successful for: ${username}`);
             return result.rows[0];
         } else {
-            console.error("Invalid query result format");
+            console.warn(`[DbOps - AuthorizeUser] User not found: ${username}`);
         }
 }
 
 async function registerUser(client, username, password) {
-    console.log("registering user:", username);
+    console.log(`[DbOps - RegisterUser] Starting registration for user: ${username}`);
+    if (!client || !client._connected) {
+        console.error("[DbOps - RegisterUser] Database connection not established");
+    }
 
-        if (!client || !client._connected) {
-            console.error("Database connection not established");
+    console.log(`[DbOps - RegisterUser] Adding user to database: ${username}`);
+    const result = await client.query(`INSERT INTO users (username, password) VALUES ($1, $2)`, [username, password]);
+    if ((result.rows === 0) || (result.rows.length > 1)) {
+        console.error("[DbOps - RegisterUser] Invalid query result format");
+        return {
+            registered: false,
+        };
+    }else {
+        console.log(`[DbOps - RegisterUser] User registered successfully: ${username}`);
+        return {
+            registered: true,
         }
-
-        console.log("adding the user to the database:", username);
-        const result = await client.query(`INSERT INTO users (username, password) VALUES ($1, $2)`, [username, password]);
-        if ((result.rows === 0) || (result.rows.length > 1)) {
-            console.error("Invalid query result format");
-            return {
-                registered: false,
-            };
-        }else {
-            return {
-                registered: true,
-            }
-        }
+    }
 }
 
 
 async function patchUserData(client, userData, username) {
+    console.log(`[DbOps - PatchUserData] Starting user data update for: ${username}`);
     if (!client || !client._connected) {
-        console.error("Database connection not established");
+        console.error("[DbOps - PatchUserData] Database connection not established");
         return false
     }
     try {
@@ -72,9 +72,10 @@ async function patchUserData(client, userData, username) {
             WHERE username = $4;`, [userData.username, userData.bio, userData.email, username]);
 
         if ((result.rowCount === 0) || (result.rowCount > 1)) {
-            console.error("Invalid query result format");
+            console.error("[DbOps - PatchUserData] Invalid query result format");
             return false
         } else {
+            console.log(`[DbOps - PatchUserData] User data updated successfully for: ${username}`);
             return true
         }
     } catch (err) {
@@ -83,11 +84,9 @@ async function patchUserData(client, userData, username) {
 }
 
 async function createTask (client, task) {
-    console.log("creating task for :", task.username);
-    console.log("creating task for user:", task);
-
+    console.log(`[DbOps - CreateTask] Creating task for user: ${task.username}`);
         if (!client || !client._connected) {
-            console.error("Database connection not established");
+            console.error("[DbOps - CreateTask] Database connection not established");
             return {
                 success: false,
             }
@@ -97,9 +96,9 @@ async function createTask (client, task) {
             [task.id, task.title, task.description, task.date, task.username, task.group]);
 
         if ((result.rows === 0)|| (result.rows.length > 1)) {
-            console.error("Invalid query result format");
+            console.error("[DbOps - CreateTask] Invalid query result format");
         } else {
-            console.log("Task has been successfully created");
+            console.log(`[DbOps - CreateTask] Task created successfully for user: ${task.username}`);
             return {
                 success: true,
             }
@@ -107,47 +106,60 @@ async function createTask (client, task) {
 }
 
 async function getUserTasks (client, username) {
+    console.log(`[DbOps - GetUserTasks] Fetching tasks for user: ${username}`);
         if (!client || !client._connected) {
-            console.error("Database connection not established");
+            console.error("[DbOps - GetUserTasks] Database connection not established");
             return {
                 success: false,
             }
         } else {
             const result = await client.query(`SELECT * FROM task WHERE username = $1;`, [username]);
-
-            return result.rows;
+            if (result) {
+                console.log(`[DbOps - GetUserTasks] Tasks retrieved successfully for user: ${username}`);
+                return result.rows;
+            } else {
+                console.warn(`[DbOps - GetUserTasks] No tasks found for user: ${username}`);
+                return null
+            }
         }
 }
 
 async function getCompletedTasks (client, username) {
+    console.log(`[DbOps - GetCompletedTasks] Fetching completed tasks for user: ${username}`);
     if (!client || !client._connected) {
-        console.error("Database connection not established");
+        console.error("[DbOps - GetCompletedTasks] Database connection not established");
         return {
             success: false,
         }
     } else {
         const result = await client.query(`SELECT * FROM completedTask WHERE username = $1;`, [username]);
-
-        return result.rows;
+        if (result) {
+            console.log(`[DbOps - GetCompletedTasks] Completed tasks retrieved successfully for user: ${username}`);
+            return result.rows;
+        } else {
+            console.warn(`[DbOps - GetCompletedTasks] No completed tasks found for user: ${username}`);
+            return null
+        }
     }
 }
 
 async function deleteTask (client, taskId) {
+    console.log(`[DbOps - DeleteTask] Deleting task with ID: ${taskId}`);
     if (!client || !client._connected) {
-        console.error("Database connection not established");
+        console.error("[DbOps - DeleteTask] Database connection not established");
         return {
             success: false,
         }
     }
-    console.log("deleting task :" + taskId);
+    console.log(`[DbOps - DeleteTask] Performing delete operation for task ID: ${taskId}`);
     const result = await client.query(`DELETE FROM task WHERE id = $1;`, [taskId]);
     if ((result.rowCount === 0) || (result.rowCount > 1)) {
-        console.error("Invalid query result format");
+        console.error("[DbOps - DeleteTask] Invalid query result format");
         return {
             success: false,
         }
     } else {
-        console.log("Task has been successfully deleted");
+        console.log(`[DbOps - DeleteTask] Task deleted successfully, ID: ${taskId}`);
         return {
             success: true,
         }
@@ -155,14 +167,14 @@ async function deleteTask (client, taskId) {
 }
 
 async function updateTask (client, id, title, description) {
+    console.log(`[DbOps - UpdateTask] Updating task with ID: ${id}`);
     if (!client || !client._connected) {
-        console.error("Database connection not established");
+        console.error("[DbOps - UpdateTask] Database connection not established");
         return {
             success: false,
         }
     }
-
-    console.log("updating task details for task :", id);
+    console.log(`[DbOps - UpdateTask] Performing update operation for task ID: ${id}`);
 
     const result = await client.query(`UPDATE task
         SET title = $1,
@@ -170,12 +182,12 @@ async function updateTask (client, id, title, description) {
         WHERE id = $3`, [title, description, id]);
     
     if ((result.rowCount === 0) || (result.rowCount > 1)) {
-        console.error("Invalid query result format");
+        console.error("[DbOps - UpdateTask] Invalid query result format");
         return {
             success: false,
         }
     } else {
-        console.log("Task has been successfully updated");
+        console.log(`[DbOps - UpdateTask] Task updated successfully, ID: ${id}`);
         return {
             success: true,
         }
@@ -183,22 +195,24 @@ async function updateTask (client, id, title, description) {
 }
 
 async function completedTask (client, task) {
+    console.log(`[DbOps - CompletedTask] Marking task as completed for user: ${task.username}`);
     if (!client || !client._connected) {
-        console.error("Database connection not established");
+        console.error("[DbOps - CompletedTask] Database connection not established");
         return {
             success: false,
         }
     }
-    console.log("adding completed task -> " + task.id);
+    console.log(`[DbOps - CompletedTask] Adding task to completed table, ID: ${task.id}`);
     const result = await client.query(`INSERT INTO completedTask (id, title, description, date, username)
         VALUES ($1, $2, $3, $4, $5)`,[task.id, task.title, task.description, task.date, task.username])
 
     if ((result.rowCount === 0) || (result.rowCount > 1)) {
-        console.error("peration completed unsuccessfuly");
+        console.error("[DbOps - CompletedTask] Operation completed unsuccessfully");
         return {
             success: false,
         }
     } else {
+        console.log(`[DbOps - CompletedTask] Task marked as completed successfully, ID: ${task.id}`);
         return {
             success: true,
         }
@@ -206,39 +220,44 @@ async function completedTask (client, task) {
 }
 
 async function getGroups (client, username) {
+    console.log(`[DbOps - GetGroups] Retrieving groups for user: ${username}`);
     if (!client || !client._connected) {
-        console.error("Database connection not established");
+        console.error("[DbOps - GetGroups] Database connection not established");
         return {
             success: false,
         }
     }
-    console.log("Getting the groups for the user: "+ username);
+    console.log(`[DbOps - GetGroups] Querying database for user groups: ${username}`);
     const result = await client.query(`SELECT name FROM groups WHERE username = $1;`, [username]);
-    console.log(result.rows);
     if (result) {
+        console.log(`[DbOps - GetGroups] Groups retrieved successfully for user: ${username}`);
         return {
             success: true,
             groups: result.rows
         };
-
+    } else {
+        console.warn(`[DbOps - GetGroups] No groups found for user: ${username}`);
+        return null
     }
 }
 
 async function createGroup (client, username, groupName) {
+    console.log(`[DbOps - CreateGroup] Creating group for user: ${username}`);
     if (!client || !client._connected) {
-        console.error("Database connection not established");
+        console.error("[DbOps - CreateGroup] Database connection not established");
         return {
             success: false,
         }
     }
-    console.log("Querying database")
+    console.log(`[DbOps - CreateGroup] Executing database query to create group: ${groupName}`);
     const result = await client.query(`INSERT INTO groups (name, username) VALUES ($1, $2)`,[groupName, username])
     if ((result.rowCount === 0) || (result.rowCount > 1)) {
-        console.error("Invalid query result format");
+        console.error("[DbOps - CreateGroup] Invalid query result format");
         return {
             success: false,
         }
     } else {
+        console.log(`[DbOps - CreateGroup] Group created successfully: ${groupName} for user: ${username}`);
         return {
             success: true,
         }
