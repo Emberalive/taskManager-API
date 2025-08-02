@@ -14,7 +14,7 @@ const {
     updateTask,
     completedTask,
     getCompletedTasks,
-    patchUserData, getGroups, createGroup
+    patchUserData, getGroups, createGroup, deleteGroup
 } = require('./DbOps')
 
 app.use(express.json());
@@ -370,6 +370,42 @@ app.post('/createGroup', async (req, res) => {
         res.status(500).send({
             success: false
         })
+    }
+})
+
+app.delete('/deleteGroup', async (req, res) => {
+    console.log("[Delete Group Endpoint] Starting group deletion")
+    const connection = await getConnection();
+    try {
+        const { group, username } = req.body;
+        console.log(`[Delete Group Endpoint] Attempting to delete group: ${group} for user: ${username}`);
+        
+        if (!group || !username) {
+            return res.status(400).send({
+                success: false
+            });
+        }
+        
+        const result = await deleteGroup(connection, group, username);
+        
+        if (result.success) {
+            console.log("[Delete Group Endpoint] Group deleted successfully");
+            return res.status(200).send({
+                success: true
+            });
+        } else {
+            console.log("[Delete Group Endpoint] Could not delete group");
+            return res.status(500).send({
+                success: false
+            });
+        }
+    } catch (err) {
+        console.error("[Delete Group Endpoint] Error: " + err.message);
+        res.status(500).send({
+            success: false
+        });
+    } finally {
+        await releaseClient(connection);
     }
 })
 

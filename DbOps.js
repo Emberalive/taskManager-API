@@ -10,6 +10,7 @@ module.exports = {
     patchUserData,
     getGroups,
     createGroup,
+    deleteGroup,
 }
 
 async function authorizeUser(client, username) {
@@ -260,6 +261,29 @@ async function createGroup (client, username, groupName) {
         console.log(`[DbOps - CreateGroup] Group created successfully: ${groupName} for user: ${username}`);
         return {
             success: true,
+        }
+    }
+}
+
+async function deleteGroup (client, groupName, username) {
+    console.log(`[DbOps - DeleteGroup] Deleting group: ${groupName} for user: ${username}`);
+    if (!client || !client._connected) {
+        console.error("[DbOps - DeleteGroup] Database connection not established");
+        return {
+            success: false,
+        }
+    }
+    console.log(`[DbOps - DeleteGroup] Executing database query to delete group: ${groupName}`);
+    const result = await client.query(`DELETE FROM groups WHERE name = $1 AND username = $2;`, [groupName, username]);
+    if (result.rowCount === 1) {
+        console.log(`[DbOps - DeleteGroup] Group deleted successfully: ${groupName} for user: ${username}`);
+        return {
+            success: true,
+        }
+    } else {
+        console.warn(`[DbOps - DeleteGroup] Failed to delete group or group not found: ${groupName} for user: ${username}`);
+        return {
+            success: false,
         }
     }
 }
