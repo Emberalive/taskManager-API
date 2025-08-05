@@ -92,9 +92,9 @@ async function createTask (client, task) {
                 success: false,
             }
         }
-        const result = await client.query(`INSERT INTO task (id, title, description, date, username, groups)
-            VALUES ($1, $2, $3, $4, $5, $6)`,
-            [task.id, task.title, task.description, task.date, task.username, task.groups]);
+        const result = await client.query(`INSERT INTO task (id, title, description, date, username, groups, completed)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [task.id, task.title, task.description, task.date, task.username, task.groups, task.completed]);
 
         if ((result.rows === 0)|| (result.rows.length > 1)) {
             console.error("[DbOps - CreateTask] Invalid query result format");
