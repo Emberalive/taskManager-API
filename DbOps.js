@@ -167,32 +167,103 @@ async function deleteTask (client, taskId) {
     }
 }
 
-async function updateTask (client, id, title, description) {
-    console.log(`[DbOps - UpdateTask] Updating task with ID: ${id}`);
-    if (!client || !client._connected) {
-        console.error("[DbOps - UpdateTask] Database connection not established");
-        return {
-            success: false,
-        }
-    }
-    console.log(`[DbOps - UpdateTask] Performing update operation for task ID: ${id}`);
+// async function updateTask (client, id, title, description) {
+//     console.log(`[DbOps - UpdateTask] Updating task with ID: ${id}`);
+//     if (!client || !client._connected) {
+//         console.error("[DbOps - UpdateTask] Database connection not established");
+//         return {
+//             success: false,
+//         }
+//     }
+//     console.log(`[DbOps - UpdateTask] Performing update operation for task ID: ${id}`);
+//
+//     const result = await client.query(`UPDATE task
+//         SET title = $1,
+//         description = $2
+//         WHERE id = $3`, [title, description, id]);
+//
+//     if ((result.rowCount === 0) || (result.rowCount > 1)) {
+//         console.error("[DbOps - UpdateTask] Invalid query result format");
+//         return {
+//             success: false,
+//         }
+//     } else {
+//         console.log(`[DbOps - UpdateTask] Task updated successfully, ID: ${id}`);
+//         return {
+//             success: true,
+//         }
+//     }
+// }
 
-    const result = await client.query(`UPDATE task
-        SET title = $1,
-        description = $2
-        WHERE id = $3`, [title, description, id]);
-    
-    if ((result.rowCount === 0) || (result.rowCount > 1)) {
+async function updateTask (client, taskData) {
+    const { id, title, description, completed } = taskData;
+
+    console.log(taskData);
+
+    console.log(`[DbOps - UpdateTask] Update task with ID: ${id}`);
+    if (!client || !client._connected) {
         console.error("[DbOps - UpdateTask] Invalid query result format");
         return {
             success: false,
         }
-    } else {
-        console.log(`[DbOps - UpdateTask] Task updated successfully, ID: ${id}`);
+    }
+
+    if (!id) {
+        console.error("[DbOps - UpdateTask] Invalid query result format");
+        return {
+            success: false,
+        }
+    }
+
+    const updates = []
+    const values = []
+    let index = 1
+
+
+    if (description !== undefined) {
+        updates.push(`description = $${index++}`);
+        values.push(description);
+    }
+
+    if (completed !== undefined) {
+        updates.push(`completed $${index++}`);
+        values.push(completed);
+    }
+
+    if (title !== undefined) {
+        updates.push(`title = $${index++}`);
+        values.push(title);
+    }
+
+    if (updates.length === 0) {
+        console.log(`[DbOps - UpdateTask] No updates found for askID: ${id}`);
         return {
             success: true,
         }
     }
+
+    values.push(id);
+    const query = `UPDATE task SET ${updates.join(', ')} WHERE id = $${index};`
+
+    try {
+        const result  = await client.query(query, values);
+
+        if (result.rowCount !== 0) {
+            console.log("[DbOps - UpdateTask] Error: " + result.rowCount);
+            return {
+                success: true,
+            }
+        }
+
+        return {success: true};
+
+    } catch (err) {
+        console.error("[DbOps - UpdateTask] Invalid query result format: " + err.message);
+        return {
+            success: false,
+        }
+    }
+
 }
 
 async function completedTask (client, task) {

@@ -15,17 +15,21 @@ const {
 
 //Create a task
 router.post('/', async (req, res) => {
-    console.log("[Create Task Endpoint] Starting task creation for user: " + req.body.task.username);
     const connection = await getConnection();
-    try {
-        console.log("[Create Task Endpoint] Task data: " + JSON.stringify(req.body.task));
+    const task = req.body;
 
-        if (!req.body.task) {
+    console.log(JSON.stringify(task))
+    console.log("[Create Task Endpoint] Starting task creation for user: " + task.username);
+
+    try {
+        console.log("[Create Task Endpoint] Task data: " + JSON.stringify(task));
+
+        if (!task) {
             return res.status(400).send({
                 success : false
             })
         }else {
-            const result = await createTask(connection, req.body.task)
+            const result = await createTask(connection, task)
 
             if (result.success ===false) {
                 return res.status(500).send({
@@ -111,16 +115,15 @@ router.patch('/', async (req, res) => {
     console.log("[Update Task Endpoint] Starting task update")
     const connection = await getConnection();
     const task = req.body
-    // const {id, title, description} = task;
-    console.log("[Update Task Endpoint] Task details - ID: " + task.id + ", Title: " + task.title + ", Description: " + task.description);
 
     console.log("[Update Task Endpoint] Update started for task ID: " + task.id)
     try {
-        if (task.id && task.title && task.description) {
+        if (task) {
             console.log("[Update Task Endpoint] Calling database operation")
-            const result = await updateTask(connection, task.id, task.title, task.description);
+            const result = await updateTask(connection, task);
 
             if (result.success) {
+                console.log("[Update Task Endpoint] Task updated successfully")
                 return res.status(200).send({
                     success: true
                 })
