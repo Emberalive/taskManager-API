@@ -226,7 +226,7 @@ async function updateTask (client, taskData) {
     }
 
     if (completed !== undefined) {
-        updates.push(`completed $${index++}`);
+        updates.push(`completed = $${index++}`);
         values.push(completed);
     }
 
