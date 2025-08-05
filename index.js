@@ -6,18 +6,16 @@ const cors = require('cors')
 
 const {getConnection, releaseClient} = require('./DBacces')
 const {
-    authorizeUser,
-    registerUser,
     createTask,
     getUserTasks,
     deleteTask,
     updateTask,
     completedTask,
     getCompletedTasks,
-    patchUserData, getGroups, createGroup, deleteGroup
 } = require('./DbOps')
 
 const groupRoutes = require('./routes/groupRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 app.use(express.json());
 //enable cors for specific routes
@@ -29,119 +27,119 @@ app.use(cors(
     }
 ));
 
-app.get('/login', async (req, res) => {
-    const connection = await getConnection();
-    let validUser = {};
-    try {
-        console.log("[Login Endpoint] Starting login process")
-        let {password, username} = req.query;
+// app.get('/login', async (req, res) => {
+//     const connection = await getConnection();
+//     let validUser = {};
+//     try {
+//         console.log("[Login Endpoint] Starting login process")
+//         let {password, username} = req.query;
+//
+//         username = username.trim();
+//         password = decodeURIComponent(password).trim();
+//
+//         console.log("[Login Endpoint] Request received for user: " + username);
+//         console.log("[Login Endpoint] Verifying parameters")
+//         if (username && password) {
+//             console.log("[Login Endpoint] Verifying user details for: " + username)
+//             validUser = await authorizeUser(connection, username);
+//
+//             if (!validUser) {
+//                 return res.status(401).send({
+//                     loggedIn: false,
+//                     error: 'Invalid username or password'
+//                 })
+//             }
+//         } else {
+//             console.warn("[Login Endpoint] Received incorrect parameters")
+//             return res.status(400);
+//         }
+//         //simple insecure password check
+//         console.log("[Login Endpoint] Verifying password");
+//         if ((!validUser) || (validUser.password !== password)) {
+//             return res.status(400).send({
+//                 loggedIn: false,
+//             })
+//         } else {
+//             console.log("[Login Endpoint] Password verified for user: " + username);
+//             return res.status(200).send({
+//                 loggedIn: true,
+//                 user: {
+//                     username: validUser.username,
+//                     email: validUser.email,
+//                     bio: validUser.bio
+//                 },
+//             })
+//         }
+//     } catch (err) {
+//         res.status(500).send({})
+//         console.error("[Login Endpoint] Error: " + err.message)
+//     } finally {
+//         await releaseClient(connection)
+//     }
+// })
 
-        username = username.trim();
-        password = decodeURIComponent(password).trim();
+// app.post('/register', async (req, res) => {
+//     console.log("[Register Endpoint] Starting registration process")
+//     const connection = await getConnection();
+//     try {
+//         const {username, password, confirmPassword} = req.body;
+//
+//         if (!username || !password || !confirmPassword) {
+//             return res.status(400).send({
+//                 registered: false,
+//             })
+//         }  else if (password !== confirmPassword) {
+//             return res.status(400).send({
+//                 registered: false,
+//             })
+//         } else {
+//             const isCreated = await registerUser(connection, username, password);
+//             if (isCreated.registered) {
+//                 return res.status(200).send({
+//                     registered: true,
+//                 })
+//             }
+//         }
+//     } catch (err) {
+//         console.error("[Register Endpoint] Error: " + err.message);
+//         res.status(500).send({
+//             registered: false,
+//         })
+//     } finally {
+//         await releaseClient(connection)
+//     }
+// });
 
-        console.log("[Login Endpoint] Request received for user: " + username);
-        console.log("[Login Endpoint] Verifying parameters")
-        if (username && password) {
-            console.log("[Login Endpoint] Verifying user details for: " + username)
-            validUser = await authorizeUser(connection, username);
-
-            if (!validUser) {
-                return res.status(401).send({
-                    loggedIn: false,
-                    error: 'Invalid username or password'
-                })
-            }
-        } else {
-            console.warn("[Login Endpoint] Received incorrect parameters")
-            return res.status(400);
-        }
-        //simple insecure password check
-        console.log("[Login Endpoint] Verifying password");
-        if ((!validUser) || (validUser.password !== password)) {
-            return res.status(400).send({
-                loggedIn: false,
-            })
-        } else {
-            console.log("[Login Endpoint] Password verified for user: " + username);
-            return res.status(200).send({
-                loggedIn: true,
-                user: {
-                    username: validUser.username,
-                    email: validUser.email,
-                    bio: validUser.bio
-                },
-            })
-        }
-    } catch (err) {
-        res.status(500).send({})
-        console.error("[Login Endpoint] Error: " + err.message)
-    } finally {
-        await releaseClient(connection)
-    }
-})
-
-app.post('/register', async (req, res) => {
-    console.log("[Register Endpoint] Starting registration process")
-    const connection = await getConnection();
-    try {
-        const {username, password, confirmPassword} = req.body;
-
-        if (!username || !password || !confirmPassword) {
-            return res.status(400).send({
-                registered: false,
-            })
-        }  else if (password !== confirmPassword) {
-            return res.status(400).send({
-                registered: false,
-            })
-        } else {
-            const isCreated = await registerUser(connection, username, password);
-            if (isCreated.registered) {
-                return res.status(200).send({
-                    registered: true,
-                })
-            }
-        }
-    } catch (err) {
-        console.error("[Register Endpoint] Error: " + err.message);
-        res.status(500).send({
-            registered: false,
-        })
-    } finally {
-        await releaseClient(connection)
-    }
-});
-
-app.patch('/profile', async (req, res) => {
-    const connection = await getConnection();
-    console.log("[Profile Endpoint] Starting profile update for user: " + req.body.username);
-
-        try {
-           if (req.body.newUserData) {
-               const result = await patchUserData(connection, req.body.newUserData, req.body.username)
-
-
-               if (result) {
-                   return res.status(201).send({
-                       success: true
-                   })
-               } else {
-                   return res.status(400).send({
-                       success: false,
-                   })
-               }
-           } else {
-               res.status(400).send({
-                   success: false
-               })
-           }
-        } catch (err) {
-        res.status(500).send({
-            success: false,
-            error: err.message
-        })
-    }
-})
+// app.patch('/profile', async (req, res) => {
+//     const connection = await getConnection();
+//     console.log("[Profile Endpoint] Starting profile update for user: " + req.body.username);
+//
+//         try {
+//            if (req.body.newUserData) {
+//                const result = await patchUserData(connection, req.body.newUserData, req.body.username)
+//
+//
+//                if (result) {
+//                    return res.status(201).send({
+//                        success: true
+//                    })
+//                } else {
+//                    return res.status(400).send({
+//                        success: false,
+//                    })
+//                }
+//            } else {
+//                res.status(400).send({
+//                    success: false
+//                })
+//            }
+//         } catch (err) {
+//         res.status(500).send({
+//             success: false,
+//             error: err.message
+//         })
+//     }
+// })
 
 app.post('/createTask', async (req, res) => {
     console.log("[Create Task Endpoint] Starting task creation for user: " + req.body.task.username);
@@ -325,93 +323,8 @@ app.patch('/updateTask', async (req, res) => {
     }
 })
 
-// app.get('/getGroups', async (req, res) => {
-//     console.log("[Get Groups Endpoint] Starting group retrieval")
-//     const connection = await getConnection();
-//     console.log("[Get Groups Endpoint] Retrieving groups for user: " + req.query.username)
-//
-//     try {
-//         const result = await getGroups(connection, req.query.username)
-//         if (result.success) {
-//             res.status(200).send({
-//                 success: true,
-//                 groups: result.groups
-//             })
-//         } else {
-//             res.status(400).send({
-//                 success: false
-//             })
-//         }
-//     } catch (err) {
-//         console.error("[Get Groups Endpoint] Error retrieving groups for user: " + req.query.username  + " - " + err.message);
-//         res.status(500).send({
-//             success: false
-//         })
-//     }
-// })
-
-// app.post('/createGroup', async (req, res) => {
-//     console.log("[Create Group Endpoint] Starting group creation")
-//     const connection = await getConnection();
-//     console.log("[Create Group Endpoint] Creating group for user: " + req.body.username)
-//     try {
-//         console.log("[Create Group Endpoint] Calling database operation")
-//         const result = await createGroup(connection, req.body.username, req.body.groupName);
-//         if (result.success) {
-//             console.log("[Create Group Endpoint] Group created successfully:", result)
-//             return res.status(200).send({
-//                 success: true
-//             })
-//         } else {
-//             return res.status(400).send({
-//                 success: false
-//             })
-//         }
-//     } catch (err) {
-//         console.error("[Create Group Endpoint] Error creating group for user: " + req.body.username + " - " + err.message);
-//         res.status(500).send({
-//             success: false
-//         })
-//     }
-// })
-
-// app.delete('/deleteGroup', async (req, res) => {
-//     console.log("[Delete Group Endpoint] Starting group deletion")
-//     const connection = await getConnection();
-//     try {
-//         const { group, username } = req.body;
-//         console.log(`[Delete Group Endpoint] Attempting to delete group: ${group} for user: ${username}`);
-//
-//         if (!group || !username) {
-//             return res.status(400).send({
-//                 success: false
-//             });
-//         }
-//
-//         const result = await deleteGroup(connection, group, username);
-//
-//         if (result.success) {
-//             console.log("[Delete Group Endpoint] Group deleted successfully");
-//             return res.status(200).send({
-//                 success: true
-//             });
-//         } else {
-//             console.log("[Delete Group Endpoint] Could not delete group");
-//             return res.status(500).send({
-//                 success: false
-//             });
-//         }
-//     } catch (err) {
-//         console.error("[Delete Group Endpoint] Error: " + err.message);
-//         res.status(500).send({
-//             success: false
-//         });
-//     } finally {
-//         await releaseClient(connection);
-//     }
-// })
-
 app.use('/groups', groupRoutes)
+app.use('/users', userRoutes)
 
 app.listen(port, () => {
     console.log(`[Server] API server listening on port ${port}`);
