@@ -167,34 +167,6 @@ async function deleteTask (client, taskId) {
     }
 }
 
-// async function updateTask (client, id, title, description) {
-//     console.log(`[DbOps - UpdateTask] Updating task with ID: ${id}`);
-//     if (!client || !client._connected) {
-//         console.error("[DbOps - UpdateTask] Database connection not established");
-//         return {
-//             success: false,
-//         }
-//     }
-//     console.log(`[DbOps - UpdateTask] Performing update operation for task ID: ${id}`);
-//
-//     const result = await client.query(`UPDATE task
-//         SET title = $1,
-//         description = $2
-//         WHERE id = $3`, [title, description, id]);
-//
-//     if ((result.rowCount === 0) || (result.rowCount > 1)) {
-//         console.error("[DbOps - UpdateTask] Invalid query result format");
-//         return {
-//             success: false,
-//         }
-//     } else {
-//         console.log(`[DbOps - UpdateTask] Task updated successfully, ID: ${id}`);
-//         return {
-//             success: true,
-//         }
-//     }
-// }
-
 async function updateTask (client, taskData) {
     const { id, title, description, completed } = taskData;
 
