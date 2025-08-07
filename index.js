@@ -11,8 +11,8 @@ app.use(express.json());
 //enable cors for specific routes
 app.use(cors(
     {
-	    origin: "https://scrapr.emberalive.com",
-        methods: ["GET", "POST", "PATCH", "DELETE"],
+	    origin: "https://sparkr.emberalive.com",
+        methods: ["GET", "POST", "PATCH", "DELETE", "HEAD"],
         "preflightContinue": false
     }
 ));
