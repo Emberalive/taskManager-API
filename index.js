@@ -11,7 +11,7 @@ app.use(express.json());
 //enable cors for specific routes
 app.use(cors(
     {
-        origin: "http://localhost:5173",
+	    origin: "https://scrapr.emberalive.com",
         methods: ["GET", "POST", "PATCH", "DELETE"],
         "preflightContinue": false
     }
