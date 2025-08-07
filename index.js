@@ -1,5 +1,5 @@
 const express = require('express');
-import helmet from "helmet";
+const helmet = require('helmet');
 const app = express();
 const port = 7000
 const cors = require('cors')
