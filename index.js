@@ -1,4 +1,5 @@
 const express = require('express');
+import helmet from "helmet";
 const app = express();
 const port = 7000
 const cors = require('cors')
@@ -7,6 +8,7 @@ const groupRoutes = require('./routes/groupRoutes');
 const userRoutes = require('./routes/userRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 
+app.use(helmet());
 app.use(express.json());
 //enable cors for specific routes
 app.use(cors(
