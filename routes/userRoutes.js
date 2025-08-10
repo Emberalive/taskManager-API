@@ -1,4 +1,7 @@
 const express = require('express')
+const bcrypt = require('bcrypt')
+const saltRounds = 10
+
 const router = express.Router()
 const {
     patchUserData, registerUser, authorizeUser,
@@ -53,13 +56,15 @@ router.post('/', async (req, res) => {
         if (!username || !password || !confirmPassword) {
             return res.status(400).send({
                 registered: false,
+                error: "Username and password is required"
             })
         }  else if (password !== confirmPassword) {
             return res.status(400).send({
                 registered: false,
             })
         } else {
-            const isCreated = await registerUser(connection, username, password);
+            const hashedPass = await bcrypt.hash(password, saltRounds)
+            const isCreated = await registerUser(connection, username, hashedPass);
             if (isCreated.registered) {
                 return res.status(200).send({
                     registered: true,
@@ -84,6 +89,9 @@ router.get('/', async (req, res) => {
         console.log("[Login Endpoint] Starting login process")
         let {password, username} = req.query;
 
+        if (!username || !password) {
+            return res.status(400).send({})
+        }
         username = username.trim();
         password = decodeURIComponent(password).trim();
 
@@ -104,20 +112,25 @@ router.get('/', async (req, res) => {
             return res.status(400);
         }
         //simple insecure password check
+
         console.log("[Login Endpoint] Verifying password");
-        if ((!validUser) || (validUser.password !== password)) {
+        if (!validUser) {
             return res.status(400).send({
                 loggedIn: false,
             })
-        } else {
+        } else{
+            const isMatch = await bcrypt.compare(password, validUser.password);
+
             console.log("[Login Endpoint] Password verified for user: " + username);
-            return res.status(200).send({
+            return res.status(isMatch? 200: 400).send(isMatch ?{
                 loggedIn: true,
                 user: {
                     username: validUser.username,
                     email: validUser.email,
                     bio: validUser.bio
                 },
+            }: {
+                loggedIn: false,
             })
         }
     } catch (err) {
