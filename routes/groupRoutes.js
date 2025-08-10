@@ -69,7 +69,7 @@ router.delete('/', async (req, res) => {
     console.log("[Delete Group Endpoint] Starting group deletion")
     const connection = await getConnection();
     try {
-        const { group, username } = req.body;
+        const { group, username } = req.query;
         console.log(`[Delete Group Endpoint] Attempting to delete group: ${group} for user: ${username}`);
 
         if (!group || !username) {
