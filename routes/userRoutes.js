@@ -87,7 +87,7 @@ router.get('/', async (req, res) => {
     let validUser = {};
     try {
         console.log("[Login Endpoint] Starting login process")
-        let {password, username} = req.query;
+        let {password, username, stayLoggedIn} = req.query;
 
         if (!username || !password) {
             return res.status(400).send({})
@@ -122,16 +122,22 @@ router.get('/', async (req, res) => {
             const isMatch = await bcrypt.compare(password, validUser.password);
 
             console.log("[Login Endpoint] Password verified for user: " + username);
-            return res.status(isMatch? 200: 400).send(isMatch ?{
-                loggedIn: true,
-                user: {
-                    username: validUser.username,
-                    email: validUser.email,
-                    bio: validUser.bio
-                },
-            }: {
-                loggedIn: false,
-            })
+
+            if (stayLoggedIn) {
+                //create jwt token, call a function
+                //then send data with token
+            } else {
+                return res.status(isMatch? 200: 400).send(isMatch ?{
+                    loggedIn: true,
+                    user: {
+                        username: validUser.username,
+                        email: validUser.email,
+                        bio: validUser.bio
+                    },
+                }: {
+                    loggedIn: false,
+                })
+            }
         }
     } catch (err) {
         res.status(500).send({})
