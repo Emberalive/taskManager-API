@@ -168,7 +168,7 @@ async function deleteTask (client, taskId) {
 }
 
 async function updateTask (client, taskData) {
-    const { id, title, description, completed } = taskData;
+    const { id, title, description, completed, reminderDate } = taskData;
 
     console.log(taskData);
 
@@ -186,6 +186,10 @@ async function updateTask (client, taskData) {
             success: false,
         }
     }
+
+    console.log("reminderDate destructured:", reminderDate, "from taskData:", taskData);
+    console.log("keys:", Object.keys(taskData));
+
 
     const updates = []
     const values = []
@@ -207,6 +211,11 @@ async function updateTask (client, taskData) {
         values.push(title);
     }
 
+    if (reminderDate !== undefined) {
+        updates.push(`remind_date = $${index++}`);
+        values.push(reminderDate);
+    }
+
     if (updates.length === 0) {
         console.log(`[DbOps - UpdateTask] No updates found for askID: ${id}`);
         return {
@@ -220,10 +229,10 @@ async function updateTask (client, taskData) {
     try {
         const result  = await client.query(query, values);
 
-        if (result.rowCount !== 0) {
+        if (result.rowCount === 0) {
             console.log("[DbOps - UpdateTask] Error: " + result.rowCount);
             return {
-                success: true,
+                success: false,
             }
         }
 
@@ -235,7 +244,6 @@ async function updateTask (client, taskData) {
             success: false,
         }
     }
-
 }
 
 async function completedTask (client, task) {
