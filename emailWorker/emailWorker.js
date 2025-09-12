@@ -29,7 +29,7 @@ async function getReminders (connection) {
         const month = today.getMonth() + 1
         const date = today.getDate()
         const year = today.getFullYear()
-        const onlyDate = `${date}/${month}/${year}`
+        const onlyDate = `${year}-${month}-${date}`
 
 
         if (result.rows.length > 0) {
