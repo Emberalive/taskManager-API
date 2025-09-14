@@ -52,8 +52,10 @@ async function getReminders (connection) {
                 console.log(`Today's date: ${format(new Date(), "yyyy-MM-dd")}`);
                 console.log(`[Worker] - Checking date for task ${row.id}, with date: ${dbDay}`);
 
+                const { id: task_id, title: task_title, description: task_description } = row;
+
+
                 if (dbDay === today) {
-                    const { id: task_id, title: task_title, description: task_description } = row;
 
                     if (task_id && task_description && task_title) {
                         let transporter = nodemailer.createTransport({
@@ -79,7 +81,7 @@ async function getReminders (connection) {
                         console.error(`[Worker] - Reminder unsent for task (incorrect parameters received): ${task_id}`)
                     }
                 } else {
-                    console.log(`reminder for task: ${id} was not today`)
+                    console.log(`reminder for task: ${task_id} was not today`)
                 }
                 console.log("Next reminder to be checked")
             }
