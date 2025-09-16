@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "worker-dev": "nodemon emailWorker.js"
   },
   "keywords": [],
   "author": "",
@@ -12,9 +13,11 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
+    "nodemailer": "^7.0.5",
     "nodemon": "^3.1.10",
     "pg": "^8.16.3",
     "postgres": "^3.4.7"
