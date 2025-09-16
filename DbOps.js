@@ -168,7 +168,7 @@ async function deleteTask (client, taskId) {
 }
 
 async function updateTask (client, taskData) {
-    const { id, title, description, completed } = taskData;
+    const {id, title, description, completed} = taskData;
 
     console.log(taskData);
 
@@ -208,34 +208,35 @@ async function updateTask (client, taskData) {
     }
 
     if (updates.length === 0) {
-        console.log(`[DbOps - UpdateTask] No updates found for askID: ${id}`);
+        console.log(`[DbOps - UpdateTask] No updates found for taskID: ${id}`);
         return {
             success: true,
+            info: "nothing to update",
         }
     }
 
     values.push(id);
-    const query = `UPDATE task SET ${updates.join(', ')} WHERE id = $${index};`
+    const query = `UPDATE task
+                   SET ${updates.join(', ')}
+                   WHERE id = $${index};`
 
     try {
-        const result  = await client.query(query, values);
+        const result = await client.query(query, values);
 
         if (result.rowCount !== 0) {
             console.log("[DbOps - UpdateTask] Error: " + result.rowCount);
             return {
-                success: true,
+                success: false,
             }
+        } else {
+            return {success: true};
         }
-
-        return {success: true};
-
     } catch (err) {
         console.error("[DbOps - UpdateTask] Invalid query result format: " + err.message);
         return {
             success: false,
         }
     }
-
 }
 
 async function completedTask (client, task) {
